@@ -1,12 +1,13 @@
-print("Hello")
 import folium
-import geopandas as gpd
-import geodatasets 
 from branca.colormap import linear
 import pandas as pd
-import requests 
 import json
-import random
+# from selenium import webdriver
+# from webdriver_manager.chrome import ChromeDriverManager
+from PIL import Image
+from pdf2image import convert_from_path
+import glob
+
 
 # globals
 
@@ -34,6 +35,40 @@ def load_price(index, path='data/pricing/'):
     return price_data
     
 
+# def map_to_png(map_path):
+#     # imgkit.from_file(f"{map_path}.html", f"{map_path}.png")
+#     # Set up the Selenium WebDriver
+#     # driver = webdriver.Chrome(ChromeDriverManager().install())
+#     driver = webdriver.Chrome('/opt/homebrew/Caskroom/chromedriver/128.0.6613.84/chromedriver-mac-arm64/chromedriver')
+
+#     # Load the HTML file
+#     driver.get(f"{map_path}.html")
+
+#     # Save the screenshot
+#     driver.save_screenshot(f"{map_path}.png")
+
+#     # Close the browser
+#     driver.quit()
+#     return None
+
+def make_gif(indices, static_map_path):
+    # List of image file names in the order you want them in the GIF
+    print("Making gif")
+    pdf_images = [static_map_path+f"_{i}.pdf" for i in indices]
+    print(pdf_images)
+    
+
+    images = [convert_from_path(fname)[0] for fname in pdf_images]
+    print("Successfully converted pdfs to PIL images")
+    print(len(images))
+    # # Open and append each image to the list
+    # for filename in pdf_images:
+    #     img = Image.open(filename)
+    #     images.append(img)
+
+    # Save the GIF
+    images[0].save("gif/nordpool.gif", save_all=True, append_images=images[1:], duration=120, loop=0)
+    return
 
 
 def make_and_save_map(index):
@@ -69,13 +104,19 @@ def make_and_save_map(index):
     folium.LayerControl().add_to(nordpool_map)
 
     # saving
-    nordpool_map.save(f'maps/interactive/nordpool_{index}.html')
+    map_path = f'maps/nordpool_{index}'
+    nordpool_map.save(f"{map_path}.html")
+    # map_to_png(map_path)
+    
+    
+
     return None
 
 def main():
     for i in range(1, 11):
+        print(f"Saved map: {i}")
         make_and_save_map(i)
-
+    make_gif([i for i in range(1,11)],"maps/static/nordpool")
 
 if __name__=="__main__":
     main()
